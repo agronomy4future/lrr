@@ -5,7 +5,7 @@
 
 The goal of the lrr package is to compute the log response ratio (LRR) between treatment and control values, along with confidence intervals. 
 
-□ Code summary: https://github.com/agronomy4future/r_code/blob/main/Log__Response_Ratio_and_Effect_Size_Calculation.ipynb
+□ Code summary: https://github.com/agronomy4future/r_code/blob/main/Log__Response_Ratio_and_Effect_Size_Calculation.ipynb </br>
 □ Code explained: https://agronomy4future.com/archives/25018
 
 ## Installation
