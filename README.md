@@ -1,5 +1,5 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-# datacume
+# lrr
 <!-- badges: start -->
 <!-- badges: end -->
 
