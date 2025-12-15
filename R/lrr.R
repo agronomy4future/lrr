@@ -46,7 +46,7 @@
 #' 692.6, 1273.9, 1010.7, 1105.8, 695, 869, 396, 1147, 883.9, 786.6, 416.2, 1512.6),
 #' N1= c(697.6, 601.9, 1063.4, 440.6, 313, 109.9, 119.9, 281.3, 3463.1, 1364.8, 1991.9,
 #' 1264, 1837.9, 1382.5, 1160.5, 248.9, 1679.7, 1704.4, 1631.7, 1065.9, 2466.4, 1324.5,
-#' 3790.1, NA, 1735, 872.3, 2314, NA, 2001.4, 1700.4, 2521.4, NA)))
+#' 3790.1, NA, 1735, 872.3, 2314, NA, 2001.4, 1700.4, 2521.4, NA))
 #'
 #' # run code
 #' output= lrr(data= df, trt= N0, ctrl= N1, group = c("Cultivar"))
@@ -76,7 +76,7 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
 
   alpha = 1 - conf.level
 
-  # --- REMOVE rows with NA / NaN / Inf in trt or ctrl ---
+  # --- remove rows with NA / NaN / Inf in trt or ctrl ---
   data = data[is.finite(data[[trt]]) & is.finite(data[[ctrl]]), ]
 
   # --- grouping ---
@@ -95,6 +95,7 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
 
   results = lapply(split(data, grp), function(df) {
 
+    # sample sizes (after filtering)
     nT = sum(!is.na(df[[trt]]))
     nC = sum(!is.na(df[[ctrl]]))
 
@@ -102,13 +103,19 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
     LRR = log(df[[trt]] / df[[ctrl]])
     nLRR = length(LRR)
 
-    mean_LRR = mean(LRR)
-    se_LRR = sd(LRR) / sqrt(nLRR)
+    if (nLRR < 2) {
+      mean_LRR = NA
+      LRR_L = NA
+      LRR_U = NA
+    } else {
+      mean_LRR = mean(LRR)
+      se_LRR = sd(LRR) / sqrt(nLRR)
 
-    tcrit = qt(1 - alpha / 2, df = nLRR - 1)
+      tcrit = qt(1 - alpha / 2, df = nLRR - 1)
 
-    LRR_L = mean_LRR - tcrit * se_LRR
-    LRR_U = mean_LRR + tcrit * se_LRR
+      LRR_L = mean_LRR - tcrit * se_LRR
+      LRR_U = mean_LRR + tcrit * se_LRR
+    }
 
     # ---------- Cohen's d ----------
     mT = mean(df[[trt]], na.rm = TRUE)
@@ -116,12 +123,17 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
     sdT = sd(df[[trt]], na.rm = TRUE)
     sdC = sd(df[[ctrl]], na.rm = TRUE)
 
-    sp = sqrt(((nT - 1) * sdT^2 + (nC - 1) * sdC^2) / (nT + nC - 2))
-    d = (mT - mC) / sp
+    if (nT + nC < 3) {
+      d = NA
+      g = NA
+    } else {
+      sp = sqrt(((nT - 1) * sdT^2 + (nC - 1) * sdC^2) / (nT + nC - 2))
+      d = (mT - mC) / sp
 
-    # ---------- Hedges' g ----------
-    J = 1 - 3 / (4 * (nT + nC) - 9)
-    g = J * d
+      # ---------- Hedges' g ----------
+      J = 1 - 3 / (4 * (nT + nC) - 9)
+      g = J * d
+    }
 
     data.frame(
       n_T = nT,
@@ -137,7 +149,7 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
 
   out = do.call(rbind, results)
 
-  # --- grouping variable recovered ---
+  # --- recover grouping variables ---
   if (!is.null(group_vars)) {
     group_df = do.call(rbind, strsplit(rownames(out), " \\| "))
     colnames(group_df) = group_vars
