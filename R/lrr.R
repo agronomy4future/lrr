@@ -74,6 +74,11 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
   trt = deparse(substitute(trt))
   ctrl = deparse(substitute(ctrl))
 
+  # validate confidence level
+  if (!is.numeric(conf.level) || conf.level <= 0 || conf.level >= 1) {
+    stop("conf.level must be a number between 0 and 1")
+  }
+
   alpha = 1 - conf.level
 
   # --- remove rows with NA / NaN / Inf in trt or ctrl ---
@@ -95,7 +100,7 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
 
   results = lapply(split(data, grp), function(df) {
 
-    # sample sizes (after filtering)
+    # sample sizes
     nT = sum(!is.na(df[[trt]]))
     nC = sum(!is.na(df[[ctrl]]))
 
@@ -103,18 +108,23 @@ lrr = function(data, trt, ctrl, group = NULL, conf.level = 0.95) {
     LRR = log(df[[trt]] / df[[ctrl]])
     nLRR = length(LRR)
 
-    if (nLRR < 2) {
+    if (nLRR == 0) {
       mean_LRR = NA
       LRR_L = NA
       LRR_U = NA
     } else {
       mean_LRR = mean(LRR)
-      se_LRR = sd(LRR) / sqrt(nLRR)
 
-      tcrit = qt(1 - alpha / 2, df = nLRR - 1)
+      if (nLRR < 2) {
+        LRR_L = NA
+        LRR_U = NA
+      } else {
+        se_LRR = sd(LRR) / sqrt(nLRR)
+        tcrit = qt(1 - alpha / 2, df = nLRR - 1)
 
-      LRR_L = mean_LRR - tcrit * se_LRR
-      LRR_U = mean_LRR + tcrit * se_LRR
+        LRR_L = mean_LRR - tcrit * se_LRR
+        LRR_U = mean_LRR + tcrit * se_LRR
+      }
     }
 
     # ---------- Cohen's d ----------
