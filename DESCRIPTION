@@ -1,0 +1,15 @@
+Package: lrr
+Title: Log Response Ratio and Effect Size Calculation for Treatment-Control Experiments
+Version: 0.0.0.9000
+Authors@R: 
+   person("JK", "Kim", , "kimjk@agronomy4future.com", role = c("aut", "cre"))
+Description: Provides functions to compute the log response ratio (LRR) and associated
+    confidence intervals for treatment-control experiments, with optional
+    grouping support. The package also calculates standardized effect sizes,
+    including Cohen's d and Hedges' g. Missing, undefined, or non-finite values
+    are safely excluded to ensure robust estimation across experimental units
+    and groups.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
